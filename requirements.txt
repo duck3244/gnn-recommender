@@ -1,0 +1,10 @@
+torch>=2.1
+torch-geometric>=2.5
+datasets
+huggingface_hub
+gradio>=4.0
+pandas
+numpy
+scipy
+tqdm
+matplotlib
