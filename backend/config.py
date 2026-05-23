@@ -35,6 +35,7 @@ class Config:
 
     # Demo
     top_k_demo: int = 10
+    demo_user_pool_size: int = 500  # number of users shown in the dropdown
 
     # Paths
     data_dir: Path = PROJECT_ROOT / "data"
@@ -75,4 +76,6 @@ def setup_logging(level=logging.INFO):
 
 cfg = Config()
 logger = setup_logging()
-seed_everything(cfg.seed)
+# Note: `seed_everything(cfg.seed)` is intentionally NOT called here.
+# Entry points (train.train, run.main) call it explicitly so importing this
+# module does not mutate global RNG state.

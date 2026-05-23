@@ -120,11 +120,16 @@ def make_undirected(edge_index: torch.Tensor) -> torch.Tensor:
 
 
 def build_user_history(edge_index: torch.Tensor, num_users: int) -> dict:
-    """Build a dict mapping user_idx -> set of interacted item_idx."""
+    """Build a dict mapping user_idx -> set of interacted item_idx (global indices >= num_users).
+
+    Expects a unidirectional user->item edge_index. Item indices must be offset
+    by num_users so downstream code can mask via `idx - num_users`.
+    """
     history = {}
     src, dst = edge_index[0].numpy(), edge_index[1].numpy()
     for u, i in zip(src, dst):
         if u < num_users:
+            assert i >= num_users, f"history must hold item-space indices, got {i} < {num_users}"
             history.setdefault(int(u), set()).add(int(i))
     return history
 
@@ -144,9 +149,9 @@ def preprocess():
     df = filter_positive(raw_df)
     df = kcore_filter(df, cfg.min_interactions)
 
-    # If too few interactions, relax to 3-core
-    if len(df) < 10000:
-        logger.info("  Too few interactions, relaxing to 3-core...")
+    # If too few interactions and we asked for stricter filtering, relax to 3-core.
+    if len(df) < 10000 and cfg.min_interactions > 3:
+        logger.info(f"  Too few interactions at {cfg.min_interactions}-core; relaxing to 3-core...")
         df = filter_positive(raw_df)
         df = kcore_filter(df, 3)
 

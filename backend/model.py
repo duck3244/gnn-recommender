@@ -14,21 +14,34 @@ def create_model(num_nodes: int, embedding_dim: int = None, num_layers: int = No
     )
 
 
-def save_checkpoint(model, optimizer, epoch, metrics, path=None):
-    """Save model checkpoint."""
+def save_checkpoint(
+    model,
+    optimizer,
+    epoch,
+    metrics,
+    path=None,
+    scheduler=None,
+    best_ndcg=None,
+    patience_counter=None,
+):
+    """Save model checkpoint. Includes scheduler/best_ndcg/patience for resume parity."""
     path = path or cfg.checkpoint_dir / "best_model.pt"
-    torch.save(
-        {
-            "model_state_dict": model.state_dict(),
-            "optimizer_state_dict": optimizer.state_dict(),
-            "epoch": epoch,
-            "metrics": metrics,
-            "num_nodes": model.num_nodes,
-            "embedding_dim": model.embedding_dim,
-            "num_layers": model.num_layers,
-        },
-        path,
-    )
+    payload = {
+        "model_state_dict": model.state_dict(),
+        "optimizer_state_dict": optimizer.state_dict(),
+        "epoch": epoch,
+        "metrics": metrics,
+        "num_nodes": model.num_nodes,
+        "embedding_dim": model.embedding_dim,
+        "num_layers": model.num_layers,
+    }
+    if scheduler is not None:
+        payload["scheduler_state_dict"] = scheduler.state_dict()
+    if best_ndcg is not None:
+        payload["best_ndcg"] = best_ndcg
+    if patience_counter is not None:
+        payload["patience_counter"] = patience_counter
+    torch.save(payload, path)
 
 
 def load_checkpoint(path=None):

@@ -1,0 +1,14 @@
+torch>=2.1
+torch-geometric>=2.5
+huggingface_hub>=0.20
+gradio>=4.0
+pandas
+numpy
+scipy
+tqdm
+matplotlib
+
+# Serving
+fastapi>=0.110,<1.0
+uvicorn[standard]>=0.27,<1.0
+pydantic>=2.7,<3.0

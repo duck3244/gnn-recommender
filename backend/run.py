@@ -1,22 +1,25 @@
-"""End-to-end pipeline: download -> train -> launch demo."""
+"""End-to-end pipeline: download -> train. Serving is handled by the FastAPI app."""
 
 import argparse
-from config import logger
+from config import cfg, logger, seed_everything
 
 
 def main():
     parser = argparse.ArgumentParser(description="GNN Product Recommender Pipeline")
     parser.add_argument("--skip-train", action="store_true", help="Skip training, use existing checkpoint")
     parser.add_argument("--epochs", type=int, default=None, help="Override number of epochs")
-    parser.add_argument("--train-only", action="store_true", help="Train only, don't launch demo")
-    parser.add_argument("--demo-only", action="store_true", help="Launch demo only")
+    parser.add_argument("--train-only", action="store_true", help="Train only, do not launch anything else")
+    parser.add_argument("--legacy-gradio", action="store_true",
+                        help="Launch the legacy Gradio demo (deprecated; use the FastAPI server)")
     parser.add_argument("--resume", action="store_true", help="Resume training from last checkpoint")
     args = parser.parse_args()
 
-    if args.demo_only:
-        from app import create_app
-        app = create_app()
-        app.launch()
+    seed_everything(cfg.seed)
+
+    if args.legacy_gradio:
+        logger.warning("Launching legacy Gradio demo. Prefer the FastAPI + React frontend.")
+        from app_gradio import create_app
+        create_app().launch()
         return
 
     # Step 1: Data
@@ -34,16 +37,7 @@ def main():
         from train import train
         train(epochs_override=args.epochs, resume=args.resume)
 
-    if args.train_only:
-        return
-
-    # Step 3: Demo
-    logger.info("=" * 50)
-    logger.info("Step 3: Launching Gradio Demo")
-    logger.info("=" * 50)
-    from app import create_app
-    app = create_app()
-    app.launch()
+    logger.info("Done. Start the FastAPI server (separate command) to serve predictions.")
 
 
 if __name__ == "__main__":

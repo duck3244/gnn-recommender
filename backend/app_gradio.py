@@ -1,4 +1,9 @@
-"""Gradio demo: GNN-powered product recommender."""
+"""Gradio demo (LEGACY).
+
+Superseded by the FastAPI + React frontend. Kept runnable for ad-hoc inspection
+via `python run.py --demo-only`. Do not extend this module — add new endpoints
+to the FastAPI service instead.
+"""
 
 import torch
 import gradio as gr
@@ -70,7 +75,7 @@ def create_app():
     users_with_history = sorted(
         [u for u in data["train_history"] if len(data["train_history"][u]) >= 3]
     )
-    sample_users = users_with_history[:500]
+    sample_users = users_with_history[: cfg.demo_user_pool_size]
 
     logger.info(f"Ready! {num_users:,} users, {data['num_items']:,} items")
 
